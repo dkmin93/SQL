@@ -1,0 +1,22 @@
+--숫자함수
+--ROUND 반올림
+SELECT ROUND(45.923, 2), ROUND(45.923, 0), ROUND(45.923, -1) FROM DUAL;
+--TRUNC 절삭
+SELECT TRUNC(45.923, 2), TRUNC(45.923, 0), TRUNC(45.923, -1) FROM DUAL; --매개값을 하나만 주면, 정수부분까지 절삭
+--ABS 절댓값 CEIL 올림(소수첫째자리에서 올림) FLOOR 내림(정수기준 정수만 남긴다) MOD 나머지
+SELECT ABS(-3), CEIL(3.14), FLOOR(3.14), MOD(5,2) FROM DUAL;
+
+--날짜 함수
+SELECT SYSDATE FROM DUAL;
+SELECT SYSTIMESTAMP FROM DUAL; --시분초(세계협정시간과의차이)까지도 전부 표기
+
+--날짜도 연산이 가능하다
+SELECT SYSDATE + 1, SYSDATE - 1 FROM DUAL; -- 날짜
+SELECT SYSDATE - HIRE_DATE FROM EMPLOYEES; --근무한 일수
+SELECT (SYSDATE - HIRE_DATE) / 7 FROM EMPLOYEES; --근무한 주
+
+--날짜의 반올림 ROUND, 절삭 TRUNC 도 가능하다
+--날짜의 반올림은 정오를 기준으로 이루어진다
+SELECT SYSDATE, ROUND(SYSDATE), TRUNC(SYSDATE) FROM DUAL; --일 기준으로 절삭
+SELECT TRUNC(SYSDATE, 'YEAR') FROM DUAL; -- 연도 기준으로 절삭
+SELECT TRUNC(SYSDATE, 'MONTH') FROM DUAL; -- 월 기준으로 절삭
