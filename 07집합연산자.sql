@@ -34,6 +34,17 @@ SELECT 'KIM', 300 FROM DUAL
 UNION ALL
 SELECT 'CHOI', 400 FROM DUAL;
 
+---------------------------------------------------------------------------------------------------------------
+--시험의 단골문제
+--분석함수
+SELECT FIRST_NAME,
+       SALARY,
+       RANK() OVER(ORDER BY SALARY DESC) AS 중복등수,
+       DENSE_RANK() OVER(ORDER BY SALARY DESC) AS 중복없는등수,
+       ROW_NUMBER() OVER(ORDER BY SALARY DESC) AS 일렬번호,
+       ROWNUM --정렬이 되면 순서가 바뀜
+       FROM EMPLOYEES;
+       
 
 
 
