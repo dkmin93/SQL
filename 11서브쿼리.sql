@@ -198,12 +198,12 @@ ORDER BY 나라명;
 SELECT *
 FROM (SELECT *
         FROM (SELECT *
-              FROM EMPLOYEES)
-              
+              FROM EMPLOYEES)   
 );
 
 --ROWNUM은 조회된 순서에 따라 변호가 붙으로므로 ORDER BY를 시키면 순서가 뒤바뀐다.
-SELECT EMPLOYEE_ID,
+SELECT ROWNUM,
+        EMPLOYEE_ID,
        FIRST_NAME,
        SALARY
 FROM EMPLOYEES
@@ -211,23 +211,24 @@ ORDER BY SALARY DESC;
 
 --인라인 뷰
 SELECT ROWNUM,
-       EMPLOYEE_ID
+       EMPLOYEE_ID,
        FIRST_NAME,
        SALARY
-    
-FROM EMPLOYEES
-ORDER BY SALARY DESC;
+FROM (SELECT *
+      FROM  EMPLOYEES
+      ORDER BY SALARY DESC
+      );
 
 --인라인뷰로 ROWNUM 붙이기
 SELECT ROWNUM
       ,EMPLOYEE_ID
       ,FIRST_NAME
       ,SALARY
-FORM (SELECT *
+FROM (SELECT *
       FROM EMPLOYEES
       ORDER BY SALARY DESC
       )
-WHERE ROWNUM > 10 AND ROWNUM <= 20; --10~20번째 데이터가 나와야하는데, ROWNUM은 1부터만 조회가 가능하다
+WHERE ROWNUM > 0 AND ROWNUM <= 20; --10~20번째 데이터가 나와야하는데, ROWNUM은 1부터만 조회가 가능하다
     
 
     
@@ -235,7 +236,7 @@ WHERE ROWNUM > 10 AND ROWNUM <= 20; --10~20번째 데이터가 나와야하는�
 --인라인뷰로 FROM 절에 필요한 컬럼을 가상의 컬럼으로 만들어 놓고, 조회
 SELECT *
 FROM (
-    SELECT * ROWNUM AS RN,
+    SELECT ROWNUM AS RN,
        --A.FIRST_NAME || A.LAST_NAME AS NAME,
        --SALARY
        A.*
@@ -263,14 +264,13 @@ FROM (
 --문제 9.
 --EMPLOYEES테이블 에서 first_name기준으로 내림차순 정렬하고, 41~50번째 데이터의 행 번호, 이름을 출력하세요
 SELECT *
-FROM(
-    SELECT ROWNUM AS RN,
-        A.*
-    FROM (
-        SELECT *  
-        FROM EMPLOYEES
-        ORDER BY FIRST_NAME DESC
-    ) A
+FROM ( SELECT ROWNUM AS RN,
+        FIRST_NAME
+        FROM(
+            SELECT FIRST_NAME
+            FROM EMPLOYEES
+            ORDER BY FIRST_NAME DESC
+        )
     )
 WHERE RN > 40 AND RN <= 50;
 
@@ -284,6 +284,17 @@ FROM (
      FROM EMPLOYEES
     )
     WHERE 급여 >= 10000;
+    
+--복습
+SELECT CS.*
+FROM (
+        SELECT FIRST_NAME,
+                SALARY + SALARY * NVL(COMMISSION_PCT, 0) AS 적용한급여
+        FROM EMPLOYEES
+        ) CS
+WHERE 적용한급여 > 10000;
+
+
 
 
 --문제 12.
@@ -336,6 +347,27 @@ FROM(
     )
 WHERE RN > 10 AND RN <= 20;
 
+--복습
+SELECT * FROM EMPLOYEES;
+SELECT * FROM DEPARTMENTS;
+
+SELECT *
+FROM (
+        SELECT ROWNUM AS RN,
+        EMPLOYEE_ID,
+        FIRST_NAME,
+        HIRE_DATE,
+        DEPARTMENT_NAME
+FROM (
+        SELECT *
+        FROM EMPLOYEES E
+        LEFT JOIN DEPARTMENTS D
+        ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+        ORDER BY HIRE_DATE
+    )
+    )
+WHERE RN >= 10 AND RN <= 20;
+
 --선생님 솔루션
 SELECT *
 FROM ( SELECT ROWNUM RN
@@ -374,7 +406,22 @@ FROM(
     ) A
     
     );
-
+    
+--선생님 솔루션
+SELECT *
+FROM (
+    SELECT ROWNUM AS RN,
+       FIRST_NAME || ' ' || LAST_NAME AS NAME,
+       SALARY,
+       DEPARTMENT_ID,
+       (SELECT DEPARTMENT_NAME FROM DEPARTMENTS D WHERE A.DEPARTMENT_ID = D.DEPARTMENT_ID)
+FROM (
+    SELECT *
+    FROM EMPLOYEES
+    WHERE JOB_ID = 'SA_MAN'
+    ORDER BY SALARY DESC
+) A
+);
 
 --문제15
 --DEPARTMENTS테이블에서 각 부서의 부서명, 매니저아이디, 부서에 속한 인원수 를 출력하세요.
@@ -403,17 +450,48 @@ SELECT * FROM DEPARTMENTS; --모든 컬럼
 SELECT * FROM LOCATIONS; --주소 우편번호 DEPARTMENT랑 조인해야함
 SELECT * FROM EMPLOYEES; -- 그룹바이 AVG연봉
 
---처음답
---
-SELECT * 
-FROM ( -- 부서의모든컬럼 + 주소,우편번호 + AVG연봉 인 가상의 테이블
-    SELECT AVG(SALARY) FROM 가상의 테이블 WHERE --평균값이 NULL이면 0으로 출력 GROUP BY DEPARTMENT_ID
-)
+--선생님 솔루션1 D.*는 D 테이블의 모든 컬럼을 가져온다는 뜻
+SELECT D.*,
+        (SELECT AVG(SALARY) FROM EMPLOYEES E WHERE E.DEPARTMENT_ID = D.DEPARTMENT_ID GROUP BY DEPARTMENT_ID)
+FROM DEPARTMENTS D;
 
+--솔루션2
+SELECT D.*,
+        NVL2(SALARY, SALARY, 0),
+        L.STREET_ADDRESS,
+        L.POSTAL_CODE
+FROM DEPARTMENTS D
+LEFT JOIN (
+    SELECT DEPARTMENT_ID,
+        AVG(SALARY) AS SALARY
+    FROM EMPLOYEES
+    GROUP BY DEPARTMENT_ID
+    ) A
+ON D.DEPARTMENT_ID = A. DEPARTMENT_ID
+LEFT JOIN LOCATIONS L
+ON D.LOCATION_ID = L.LOCATION_ID;
 
+--문제16 복습
+--부서의 모든 컬럼, 주소, 우편번호, 부서별 평균 연봉을 구해서 출력하세요.
+--조건) 부서별 평균이 없으면 0으로 출력하세요
+--결과에 대해 DEPARTMENT_ID기준으로 내림차순 정렬해서 ROWNUM을 붙여 1-10데이터 까지만 출력하세요
+SELECT * FROM DEPARTMENTS; --모든 컬럼
+SELECT * FROM LOCATIONS; --주소 우편번호 DEPARTMENT랑 조인해야함
+SELECT * FROM EMPLOYEES; -- 그룹바이 AVG연봉
 
-
-
---문제17
---문제 16결과에 대해 DEPARTMENT_ID기준으로 내림차순 정렬해서 ROWNUM을 붙여 1-10데이터 까지만
---출력하세요
+SELECT *
+FROM (
+        SELECT ROWNUM AS RN,
+        D.*,
+        STREET_ADDRESS,
+        POSTAL_CODE,
+        (SELECT NVL(AVG(SALARY), 0) FROM EMPLOYEES E WHERE E.DEPARTMENT_ID = D.DEPARTMENT_ID GROUP BY DEPARTMENT_NAME) AS 평균연봉
+            FROM (
+                    SELECT * 
+                    FROM DEPARTMENTS
+                    ORDER BY DEPARTMENT_ID DESC
+    ) D
+            LEFT JOIN LOCATIONS L
+            ON D.LOCATION_ID = L.LOCATION_ID
+    )
+WHERE RN <= 10;
