@@ -22,3 +22,10 @@ REVOKE CREATE SESSION FROM USER01;
 
 --계정 삭제
 DROP USER USER01 CASCADE; --계정이 테이블과 데이터를 가지고 있으면 테이블을 포함해서 싹 다 삭제가 일어난다
+
+-----------------------------------------------------------------------------------------------------------
+--롤 을 이용한 권한부여
+CREATE USER01 IDENTIFIED BY USER01;
+GRANT RESOURCE, CONNECT TO USER01; --리소스롤 (테이블,뷰,시퀀스,프로시저 등의 권한의 그룹)
+ALTER USER USER01 DEFAULT TABLESPACE USERS QUOTA UNLIMITED ON USERS;
+DROP USER SUER01;
